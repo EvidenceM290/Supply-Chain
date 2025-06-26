@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Network Visualization</h2>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Network Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Total Nodes</h6>
+                        <p class="h4">{{ stats.total_nodes }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Total Connections</h6>
+                        <p class="h4">{{ stats.total_edges }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Active Nodes</h6>
+                        <p class="h4">{{ stats.active_nodes }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Node Type</label>
+                        <select class="form-select">
+                            <option value="all">All Types</option>
+                            <option value="warehouse">Warehouses</option>
+                            <option value="distribution">Distribution Centers</option>
+                            <option value="retail">Retail Stores</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-body">
+                    <div id="network-map" style="height: 600px;">
+                        <!-- Network visualization will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    // Network visualization code will be added here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the network visualization
+    });
+</script>
+{% endblock %} 
