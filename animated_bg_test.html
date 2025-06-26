@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Animated Background Test</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+    }
+    #animated-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      opacity: 0.18;
+      pointer-events: none;
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+      color: #222;
+      font-size: 2rem;
+      text-align: center;
+      margin-top: 20vh;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="animated-bg"></canvas>
+  <div class="content">
+    If you see moving red cargos and lines, the animation works!<br>
+    (This is a test, not your dashboard)
+  </div>
+  <script>
+    const canvas = document.getElementById('animated-bg');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    const COLORS = { red: '#D7263D', white: '#FFFFFF', gray: '#DDDDDD' };
+    const ICONS = {
+      ship: new Path2D('M10 30 Q20 10 40 30 Q60 50 80 30 Q100 10 110 30 L110 40 Q100 50 80 40 Q60 30 40 40 Q20 50 10 40 Z'),
+      truck: new Path2D('M10 40 L60 40 L60 30 L90 30 L90 50 L10 50 Z M20 50 A5 5 0 1 0 30 50 A5 5 0 1 0 20 50 M70 50 A5 5 0 1 0 80 50 A5 5 0 1 0 70 50'),
+      plane: new Path2D('M60 10 L65 40 L80 45 L65 50 L60 90 L55 50 L40 45 L55 40 Z')
+    };
+    const cargos = [];
+    const NUM_CARGOS = 8;
+    const ICON_LIST = ['ship', 'truck', 'plane'];
+    for (let i = 0; i < NUM_CARGOS; i++) {
+      const icon = ICON_LIST[i % ICON_LIST.length];
+      cargos.push({
+        icon,
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        speed: 0.15 + Math.random() * 0.1,
+        dir: Math.random() * 2 * Math.PI,
+        color: COLORS.red
+      });
+    }
+    const connections = [];
+    const NUM_CONNECTIONS = 10;
+    for (let i = 0; i < NUM_CONNECTIONS; i++) {
+      const a = Math.floor(Math.random() * NUM_CARGOS);
+      let b = Math.floor(Math.random() * NUM_CARGOS);
+      if (a === b) b = (b + 1) % NUM_CARGOS;
+      connections.push({ from: a, to: b, phase: Math.random() * 1000 });
+    }
+    function drawIcon(icon, x, y, scale, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.7;
+      ctx.stroke(ICONS[icon]);
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+    }
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const cargo of cargos) {
+        cargo.x += Math.cos(cargo.dir) * cargo.speed;
+        cargo.y += Math.sin(cargo.dir) * cargo.speed;
+        if (cargo.x < -30) cargo.x = canvas.width + 30;
+        if (cargo.x > canvas.width + 30) cargo.x = -30;
+        if (cargo.y < -30) cargo.y = canvas.height + 30;
+        if (cargo.y > canvas.height + 30) cargo.y = -30;
+      }
+      for (const conn of connections) {
+        const a = cargos[conn.from];
+        const b = cargos[conn.to];
+        const t = (Date.now() / 2000 + conn.phase) % 1;
+        ctx.save();
+        ctx.globalAlpha = 0.10 + 0.10 * Math.sin(t * 2 * Math.PI);
+        ctx.strokeStyle = COLORS.gray;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+      for (const cargo of cargos) {
+        drawIcon(cargo.icon, cargo.x, cargo.y, 0.25, cargo.color);
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html> 

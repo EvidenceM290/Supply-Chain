@@ -1,0 +1,1414 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div style="margin-bottom: 1.5rem;"></div>
+    
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                Dashboard Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network" type="button" role="tab">
+                Network Visualization
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="route-tab" data-bs-toggle="tab" data-bs-target="#route-analysis" type="button" role="tab">
+                Route Analysis
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk-management" type="button" role="tab">
+                Risk Management
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-management" type="button" role="tab">
+                Inventory Management
+            </button>
+        </li>
+        <!-- New Notification Tab -->
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notification-tab" data-bs-toggle="tab" data-bs-target="#notification" type="button" role="tab">
+                Notification
+            </button>
+        </li>
+        <!-- New Configuration Tab -->
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="configuration-tab" data-bs-toggle="tab" data-bs-target="#configuration" type="button" role="tab">
+                Configuration
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="dashboardTabContent">
+        <!-- Dashboard Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card mb-3 total-locations-card" style="background:#EE2D3D;color:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(30,30,60,0.07);">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color:#fff;">Total Locations</h5>
+                            <p class="card-text display-6">{{ stats.total_nodes }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card mb-3" style="background:#48B9FD;color:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(30,30,60,0.07);">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color:#fff;">Total Routes</h5>
+                            <p class="card-text display-6">{{ stats.total_edges }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card mb-3" style="background:#602CF3;color:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(30,30,60,0.07);">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color:#fff;">Active Locations</h5>
+                            <p class="card-text display-6">{{ stats.active_nodes }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card mb-3 risk-score-card" style="background:#C10D68;color:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(30,30,60,0.07);">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color:#fff;">Total Risk Score</h5>
+                            <p class="card-text display-6">{{ stats.risk_score }}%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Dashboard Map and Pie Row -->
+            <div class="row mb-4">
+                <!-- Map Card -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">Location Map</h5>
+                        </div>
+                        <div class="card-body" style="position:relative; display:flex; flex-direction:column; align-items:center;">
+                            <div id="location-map" style="min-height:320px; height:100%; width:100%;"></div>
+                            <!-- Horizontal Risk Level Legend inside the map card -->
+                            <div style="display:flex; flex-direction:row; gap:24px; margin-top:12px;">
+                                <div style="display:flex; align-items:center;"><span style="display:inline-block; width:16px; height:16px; background:#43a047; border-radius:2px; margin-right:8px;"></span><span style="font-size:16px; color:#222;">Low</span></div>
+                                <div style="display:flex; align-items:center;"><span style="display:inline-block; width:16px; height:16px; background:#fbc02d; border-radius:2px; margin-right:8px;"></span><span style="font-size:16px; color:#222;">Medium</span></div>
+                                <div style="display:flex; align-items:center;"><span style="display:inline-block; width:16px; height:16px; background:#e53935; border-radius:2px; margin-right:8px;"></span><span style="font-size:16px; color:#222;">High</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pie Chart Card -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">Location Risk Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="status-pie-chart" style="min-height:320px; height:100%; width:100%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Location Status Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Location Status Table</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="node-table">
+                            <thead>
+                                <tr>
+                                    <th>Location ID</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Delay Probability</th>
+                                    <th>Weather</th>
+                                    <th>Overall Risk</th>
+                                    <th>Overall Risk Percent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for node in nodes %}
+                                <tr data-continent="{{ node.continent }}">
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ node.location }}</td>
+                                    <td>{{ node.status }}</td>
+                                    <td>{{ node.risk_factors.delay_probability }}%</td>
+                                    <td>{{ node.risk_factors.weather }}</td>
+                                    <td>
+                                        {% set risk_pct = node.total_risk_pct %}
+                                        {% if risk_pct < 33 %}
+                                            <span class="badge" style="background-color: #43a047; color: white;">Low</span>
+                                        {% elif risk_pct < 66 %}
+                                            <span class="badge" style="background-color: #fbc02d; color: white;">Medium</span>
+                                        {% else %}
+                                            <span class="badge" style="background-color: #e53935; color: white;">High</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ node.total_risk_pct }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Visualization Tab -->
+        <div class="tab-pane fade" id="network" role="tabpanel">
+            <div class="row">
+                <!-- Left Panel: Chat and Route Analysis -->
+                <div class="col-md-4">
+                    <!-- Chat Section -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Logistics Assistant</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="chat-messages" style="height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa;">
+                                <div class="message system">
+                                    <strong>Logistics Assistant:</strong> Hello! I can help you analyze supply chain routes and provide insights. Ask me about routes, risks, or any supply chain questions.
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="chat-input" class="form-control" placeholder="Ask about routes, risks, or supply chain analysis...">
+                                <button class="btn btn-primary" id="send-chat">Send</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Route Analysis Section -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Route Analysis</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="source-location" class="form-label">Source Location</label>
+                                <select class="form-select" id="source-location">
+                                    <option value="">Select source location...</option>
+                                    {% for location in locations %}
+                                    <option value="{{ location }}">{{ location }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="target-location" class="form-label">Target Location</label>
+                                <select class="form-select" id="target-location">
+                                    <option value="">Select target location...</option>
+                                    {% for location in locations %}
+                                    <option value="{{ location }}">{{ location }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button class="btn btn-success w-100" id="analyze-route">Analyze Route</button>
+                        </div>
+                    </div>
+
+                    <!-- Route Results -->
+                    <div class="card" id="route-results" style="display: none;">
+                        <div class="card-header">
+                            <h5 class="mb-0">Route Analysis Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="route-details"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Map Visualization -->
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Network Analysis</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="network-map" style="height: 600px; width: 100%;"></div>
+                            <button class="btn btn-info w-100 mt-2" id="show-route-analysis">Click here for route analysis</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Management Tab -->
+        <div class="tab-pane fade" id="risk-management" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <!-- Risk Management Analysis and AI Risk Expert side by side -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 col-lg-6 col-xl-6">
+                            <!-- Risk Management Analysis Card -->
+                            <div class="card mb-4" style="min-height: 400px;">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Risk Management Analysis</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="risk-source-location" class="form-label">Source Location</label>
+                                        <select class="form-select" id="risk-source-location">
+                                            <option value="">Select source location...</option>
+                                            {% for loc in locations %}
+                                            <option value="{{ loc }}">{{ loc }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="risk-target-location" class="form-label">Target Location</label>
+                                        <select class="form-select" id="risk-target-location">
+                                            <option value="">Select target location...</option>
+                                            {% for loc in locations %}
+                                            <option value="{{ loc }}">{{ loc }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-danger w-100" id="analyze-risk">Analyze</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-xl-6">
+                            <!-- AI Risk Expert Card -->
+                            <div class="card mb-4" style="min-height: 400px;">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">AI Risk Expert</h5>
+                                </div>
+                                <div class="card-body">
+                                    <label for="ai-risk-query" class="form-label">Ask a risk-related question about your supply chain:</label>
+                                    <textarea id="ai-risk-query" class="form-control mb-3" rows="3" placeholder="Type your question here..."></textarea>
+                                    <button class="btn btn-primary w-100 mb-2" id="ask-ai-risk">Ask AI Risk Expert</button>
+                                    <div id="ai-risk-response"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Risk Analysis Results below -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="risk-analysis-results-container" style="display:none;">
+                                <h4 class="mb-3" style="color:#EE2D3D;">Risk Analysis Results</h4>
+                                <div id="risk-results" class="card">
+                                    <div class="card-body" id="risk-details"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Management Tab -->
+        <div class="tab-pane fade" id="inventory-management" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Inventory Management</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="inventory-location" class="form-label">Select Location</label>
+                                <select class="form-select" id="inventory-location">
+                                    <option value="">Select location...</option>
+                                    {% for location in locations %}
+                                    <option value="{{ location }}">{{ location }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" id="inventory-results" style="display:none;">
+                        <div class="card-header">
+                            <h5 class="mb-0">Inventory Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="inventory-details"></div>
+                            <div class="mb-3" id="agent-email-section" style="display:none;">
+                                <label for="agent-select" class="form-label">Select Agent</label>
+                                <select class="form-select" id="agent-select">
+                                    <option value="">Select agent...</option>
+                                </select>
+                                <div class="mt-2">
+                                    <label for="agent-email" class="form-label">Agent Email</label>
+                                    <input type="text" class="form-control" id="agent-email" readonly>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="email-message" class="form-label">Message to Agent</label>
+                                    <textarea class="form-control" id="email-message" rows="3" placeholder="Type your message here..."></textarea>
+                                </div>
+                                <button class="btn btn-primary mt-2" id="send-agent-email">Send Email</button>
+                                <div id="email-status" class="mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Analysis Tab -->
+        <div class="tab-pane fade" id="route-analysis" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card" id="route-results-analysis" style="display: block;">
+                        <div class="card-header">
+                            <h5 class="mb-0">Route Analysis Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-5">
+                                    <label for="route-source-location" class="form-label">Source Location</label>
+                                    <select class="form-select" id="route-source-location">
+                                        <option value="">Select source location...</option>
+                                        {% for location in locations %}
+                                        <option value="{{ location }}">{{ location }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="route-target-location" class="form-label">Target Location</label>
+                                    <select class="form-select" id="route-target-location">
+                                        <option value="">Select target location...</option>
+                                        {% for location in locations %}
+                                        <option value="{{ location }}">{{ location }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-success w-100" id="analyze-route-analysis">Analyze</button>
+                                </div>
+                            </div>
+                            <div id="route-recommendation" class="mt-3"><h6>Executive Summary</h6></div>
+                            <div id="route-details-analysis">Please analyze a route from the Network Visualization tab to see results here.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Tab -->
+        <div class="tab-pane fade" id="notification" role="tabpanel">
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Notification Center</h5>
+                </div>
+                <div class="card-body">
+                    <p>This is the Notification tab. You can display alerts, messages, or system notifications here.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Tab -->
+        <div class="tab-pane fade" id="configuration" role="tabpanel">
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <p>This is the Configuration tab. You can add system or user configuration options here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Plotly.js for charts -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Add this at the top of the script section
+const nodeLocationMap = {{ node_location_map|tojson }};
+const nodeIdToLocation = {{ node_id_to_location|tojson }};
+
+// --- Dashboard Overview Scripts ---
+// Map Data Preparation
+const nodes = {{ nodes|tojson }};
+const riskColors = { low: '#43a047', medium: '#fbc02d', high: '#e53935' };
+const continents = [...new Set(nodes.map(n => n.continent))];
+
+// Group nodes by continent for legend
+const mapTraces = continents.map(cont => {
+    const group = nodes.filter(n => n.continent === cont);
+    return {
+        type: 'scattergeo',
+        mode: 'markers',
+        name: cont,
+        text: group.map(n => `${n.location} (${n.risk_level})`),
+        lat: group.map(n => n.lat),
+        lon: group.map(n => n.lon),
+        marker: {
+            size: 10,
+            color: group.map(n => riskColors[n.risk_level]),
+            line: { width: 1, color: '#222' }
+        },
+        customdata: group.map(n => n.continent)
+    };
+});
+
+Plotly.newPlot('location-map', mapTraces, {
+    title: { text: 'Country Locations', font: { size: 16 } },
+    geo: {
+        scope: 'world',
+        projection: { type: 'natural earth' },
+        showland: true,
+        landcolor: '#eaeaea',
+        showcountries: true,
+        countrycolor: '#888',
+        showframe: false
+    },
+    legend: { title: { text: 'Continent' }, font: { size: 13 } },
+    margin: { t: 40, l: 10, r: 10, b: 10 },
+    autosize: true
+}, {responsive: true});
+
+// Pie Chart: Location Risk Distribution
+const pieLabels = {{ pie_labels|tojson }};
+const pieValues = {{ pie_values|tojson }};
+// Map colors to risk labels dynamically
+const colorMap = { 
+  'High Risk': '#e53935', 'Medium Risk': '#fbc02d', 'Low Risk': '#43a047',
+  'High': '#e53935', 'Medium': '#fbc02d', 'Low': '#43a047'
+};
+const pieColors = pieLabels.map(l => colorMap[l] || '#888');
+
+// --- ENHANCED PIE CHART: Color-coded and interactive highlight ---
+let piePull = [0, 0, 0];
+Plotly.newPlot('status-pie-chart', [{
+    values: pieValues,
+    labels: pieLabels,
+    type: 'pie',
+    marker: { colors: pieColors },
+    textinfo: 'label+percent',
+    pull: piePull,
+    hole: 0,
+    sort: false
+}], {
+    showlegend: true,
+    legend: { x: 1, y: 0.5, orientation: 'v', font: { size: 16 } },
+    margin: { t: 60, b: 20, l: 10, r: 120 },
+    height: 400
+}, {responsive: true});
+
+// --- Network Visualization Scripts ---
+// Chat functionality
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const sendChatBtn = document.getElementById('send-chat');
+
+function addMessage(message, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+    messageDiv.innerHTML = `<strong>${isUser ? 'You' : 'Logistics Assistant'}:</strong> ${message}`;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+sendChatBtn.addEventListener('click', async () => {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    addMessage(message, true);
+    chatInput.value = '';
+    sendChatBtn.disabled = true;
+    sendChatBtn.textContent = 'Sending...';
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            addMessage(data.response);
+        } else {
+            addMessage('Sorry, I encountered an error. Please try again.');
+        }
+    } catch (error) {
+        addMessage('Sorry, I encountered an error. Please try again.');
+    } finally {
+        sendChatBtn.disabled = false;
+        sendChatBtn.textContent = 'Send';
+    }
+});
+
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendChatBtn.click();
+    }
+});
+
+// Route Analysis functionality
+const analyzeRouteBtn = document.getElementById('analyze-route');
+const routeResults = document.getElementById('route-results');
+const routeDetails = document.getElementById('route-details');
+
+// Store last analyzed route data
+let lastRouteData = null;
+
+analyzeRouteBtn.addEventListener('click', async () => {
+    const sourceLocation = document.getElementById('source-location').value;
+    const targetLocation = document.getElementById('target-location').value;
+    const sourceNodeId = nodeLocationMap[sourceLocation];
+    const targetNodeId = nodeLocationMap[targetLocation];
+
+    if (!sourceNodeId || !targetNodeId) {
+        alert('Please select both source and target locations.');
+        return;
+    }
+
+    if (sourceNodeId === targetNodeId) {
+        alert('Source and target locations must be different.');
+        return;
+    }
+
+    analyzeRouteBtn.disabled = true;
+    analyzeRouteBtn.textContent = 'Analyzing...';
+
+    try {
+        const response = await fetch('/api/analyze-route', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ source: sourceNodeId, target: targetNodeId })
+        });
+        const data = await response.json();
+        if (data.success) {
+            lastRouteData = data;
+            visualizeRouteOnMap(data);
+        } else {
+            alert('Error analyzing route: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error analyzing route. Please try again.');
+    } finally {
+        analyzeRouteBtn.disabled = false;
+        analyzeRouteBtn.textContent = 'Analyze Route';
+    }
+});
+
+// Show route analysis in the Route Analysis tab when the button is clicked
+const showRouteAnalysisBtn = document.getElementById('show-route-analysis');
+showRouteAnalysisBtn.addEventListener('click', function() {
+    if (lastRouteData) {
+        // Switch to the Route Analysis tab
+        var tabTrigger = new bootstrap.Tab(document.querySelector('#route-tab'));
+        tabTrigger.show();
+        // Show the results
+        const routeResultsAnalysis = document.getElementById('route-results-analysis');
+        const routeDetailsAnalysis = document.getElementById('route-details-analysis');
+        routeResultsAnalysis.style.display = 'block';
+        displayRouteResultsCustom(lastRouteData, routeDetailsAnalysis);
+        // Highlight the Route Analysis tab
+        tabButtons.forEach(b => b.classList.remove('active'));
+        document.getElementById('route-tab').classList.add('active');
+    } else {
+        alert('Please analyze a route first.');
+    }
+});
+
+// Custom display function for the Route Analysis tab
+function displayRouteResultsCustom(data, container) {
+    let html = `<h6>Route from ${nodeIdToLocation[data.source]} to ${nodeIdToLocation[data.target]}</h6>`;
+    if (data.routes.length === 0) {
+        html += '<p class="text-warning">No routes found between these locations.</p>';
+    } else {
+        data.routes.forEach((route, index) => {
+            const statusClass = route.blocked ? 'text-danger' : route.inactive ? 'text-warning' : 'text-success';
+            const statusText = route.blocked ? 'Blocked' : route.inactive ? 'Inactive' : 'Active';
+            const optimalBadge = route.is_optimal ? ' <span class="badge bg-success">Optimal</span>' : '';
+            const routeNames = route.route.map(nodeId => nodeIdToLocation[nodeId] || nodeId);
+            html += `<div class="mb-2"><strong>Route ${index + 1}${optimalBadge}:</strong> ${routeNames.join(' → ')}<br>`;
+            html += `<span class="${statusClass}">Status: ${statusText}</span></div>`;
+            // Add summary line for overall stats
+            html += `<div class=\"mb-2\"><strong>Overall Cost:</strong> $${route.total_cost.toLocaleString()} | <strong>Overall Risk:</strong> ${route.total_risk} | <strong>Overall Delay:</strong> ${Math.round(route.total_delay)}% | <strong>Total Days:</strong> ${route.total_time}</div>`;
+            html += '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>From</th><th>To</th><th>Mode</th><th>Cost</th><th>Risk</th><th>Delay</th><th>Status</th><th>Days</th></tr></thead><tbody>';
+            route.segments.forEach(seg => {
+                html += `<tr>
+                    <td>${seg.from}</td>
+                    <td>${seg.to}</td>
+                    <td>${seg.mode}</td>
+                    <td>$${seg.cost.toLocaleString()}</td>
+                    <td>${seg.risk}</td>
+                    <td>${seg.delay}%</td>
+                    <td>${seg.status}</td>
+                    <td>${seg.time_days}</td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+        });
+        // Render recommendation in a dedicated box
+        const recommendationDiv = document.getElementById('route-recommendation');
+        if (recommendationDiv) {
+            let recHtml = '';
+            if (data.routes && data.routes.length > 0) {
+                const optimalRoute = data.routes.find(r => r.is_optimal);
+                if (optimalRoute) {
+                    recHtml += `<div class="alert alert-info mt-3"><strong>Recommendation:</strong><br>`;
+                    recHtml += `The best route is <strong>Route ${data.routes.indexOf(optimalRoute) + 1}</strong> with <strong>Cost:</strong> $${optimalRoute.total_cost.toLocaleString()}, <strong>Risk:</strong> ${optimalRoute.total_risk}, <strong>Delay:</strong> ${optimalRoute.total_delay}%, <strong>Total Days:</strong> ${optimalRoute.total_time}.<br>`;
+                    let reason = [];
+                    const minCost = Math.min(...data.routes.map(r => r.total_cost));
+                    const minDelay = Math.min(...data.routes.map(r => r.total_delay));
+                    const minDays = Math.min(...data.routes.map(r => r.total_time));
+                    if (optimalRoute.total_cost === minCost) reason.push('lowest cost');
+                    if (optimalRoute.total_delay === minDelay) reason.push('lowest delay');
+                    if (optimalRoute.total_time === minDays) reason.push('shortest delivery time');
+                    reason.push(`risk level: ${optimalRoute.total_risk}`);
+                    recHtml += `<em>This route is recommended because it has the ${reason.join(', ')}.</em></div>`;
+                }
+            }
+            recommendationDiv.innerHTML = recHtml;
+        }
+    }
+    container.innerHTML = html;
+}
+
+// Map visualization for network
+let networkMap = null;
+
+function initializeNetworkMap() {
+    // Initialize with a world map
+    const layout = {
+        title: { text: 'Supply Chain Network', font: { size: 16 } },
+        geo: {
+            scope: 'world',
+            projection: { type: 'natural earth' },
+            showland: true,
+            landcolor: '#eaeaea',
+            showcountries: true,
+            countrycolor: '#888',
+            showframe: false
+        },
+        margin: { t: 40, l: 10, r: 10, b: 10 },
+        autosize: true
+    };
+
+    Plotly.newPlot('network-map', [], layout, {responsive: true});
+}
+
+function visualizeRouteOnMap(data) {
+    if (!data.routes || data.routes.length === 0) return;
+
+    // Get node coordinates from backend data
+    const nodeCoords = {{ node_coords|tojson }};
+    
+    // Create traces for each route (only plot nodes/lines for the computed routes)
+    const traces = [];
+    const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'];
+    
+    data.routes.forEach((route, index) => {
+        const routeNodes = route.route;
+        const lats = [];
+        const lons = [];
+        const texts = [];
+        
+        routeNodes.forEach((nodeId, idx) => {
+            if (nodeCoords[nodeId]) {
+                lats.push(nodeCoords[nodeId][0]);
+                lons.push(nodeCoords[nodeId][1]);
+                texts.push(`${nodeIdToLocation[nodeId] || nodeId}`);
+            }
+        });
+        
+        if (lats.length > 0) {
+            const color = colors[index % colors.length];
+            const lineWidth = route.is_optimal ? 4 : 2;
+            
+            // Main route trace (lines and intermediate markers)
+            traces.push({
+                type: 'scattergeo',
+                mode: 'lines+markers',
+                name: `Route ${index + 1}${route.is_optimal ? ' (Optimal)' : ''}`,
+                text: texts,
+                lat: lats,
+                lon: lons,
+                line: {
+                    color: color,
+                    width: lineWidth
+                },
+                marker: {
+                    size: 8,
+                    color: color,
+                    line: { width: 1, color: '#222' }
+                },
+                showlegend: true
+            });
+            // Start point (distinct, green)
+            traces.push({
+                type: 'scattergeo',
+                mode: 'markers',
+                name: 'Start',
+                text: [nodeIdToLocation[routeNodes[0]] || routeNodes[0]],
+                lat: [lats[0]],
+                lon: [lons[0]],
+                marker: {
+                    size: 14,
+                    color: '#43a047',
+                    symbol: 'star',
+                    line: { width: 2, color: '#222' }
+                },
+                showlegend: index === 0 // Only show legend once
+            });
+            // End point (distinct, red)
+            traces.push({
+                type: 'scattergeo',
+                mode: 'markers',
+                name: 'End',
+                text: [nodeIdToLocation[routeNodes[routeNodes.length-1]] || routeNodes[routeNodes.length-1]],
+                lat: [lats[lats.length-1]],
+                lon: [lons[lons.length-1]],
+                marker: {
+                    size: 14,
+                    color: '#e53935',
+                    symbol: 'circle',
+                    line: { width: 2, color: '#222' }
+                },
+                showlegend: index === 0 // Only show legend once
+            });
+        }
+    });
+    
+    // Only plot the computed route(s)
+    Plotly.react('network-map', traces, {
+        title: { text: `Routes from ${nodeIdToLocation[data.source]} to ${nodeIdToLocation[data.target]}`, font: { size: 16 } },
+        geo: {
+            scope: 'world',
+            projection: { type: 'natural earth' },
+            showland: true,
+            landcolor: '#eaeaea',
+            showcountries: true,
+            countrycolor: '#888',
+            showframe: false
+        },
+        legend: { title: { text: 'Routes' }, font: { size: 12 } },
+        margin: { t: 40, l: 10, r: 10, b: 10 },
+        autosize: true
+    }, {responsive: true});
+}
+
+// Initialize network map when network tab is shown
+document.getElementById('network-tab').addEventListener('click', function() {
+    setTimeout(() => {
+        if (networkMap === null) {
+            initializeNetworkMap();
+        }
+    }, 100);
+});
+
+// Risk Management functionality
+document.getElementById('analyze-risk').addEventListener('click', async function() {
+    const source = document.getElementById('risk-source-location').value;
+    const target = document.getElementById('risk-target-location').value;
+    const resultsCard = document.getElementById('risk-results');
+    const detailsDiv = document.getElementById('risk-details');
+    if (!source && !target) {
+        detailsDiv.innerHTML = '<div class="text-danger">Please select at least one location.</div>';
+        resultsCard.style.display = 'block';
+        return;
+    }
+    detailsDiv.innerHTML = 'Analyzing risk...';
+    resultsCard.style.display = 'block';
+    const resultsContainer = document.getElementById('risk-analysis-results-container');
+    resultsContainer.style.display = 'block';
+    try {
+        const response = await fetch('/api/risk-management', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source, target })
+        });
+        const data = await response.json();
+        if (data.success) {
+            const r = data.result;
+            // Handle single location (source or target only)
+            if (r.location) {
+                detailsDiv.innerHTML = `
+                    <strong>Location:</strong> ${r.location} <br>
+                    <strong>Status:</strong> ${r.status} <br>
+                    <strong>Weather:</strong> ${r.weather.desc} (Temp: ${r.weather.temp}°C, Wind: ${r.weather.wind} m/s) <br>
+                    <strong>Country Risk:</strong> ${r.country_risk} <br>
+                    <strong>Estimated Delay Probability:</strong> ${r.delay_probability}% <br>
+                    <strong>Total Risk:</strong> ${r.total_risk_pct}% (${r.total_risk_qualitative}) <br>
+                    <hr>
+                    <pre style='white-space:pre-wrap;'>${r.summary}</pre>
+                `;
+            } else {
+                // Route (both source and target)
+                detailsDiv.innerHTML = `
+                    <strong>Source:</strong> ${r.source} <br>
+                    <strong>Target:</strong> ${r.target} <br>
+                    <strong>Source Status:</strong> ${r.source_status} <br>
+                    <strong>Target Status:</strong> ${r.target_status} <br>
+                    <strong>Source Weather:</strong> ${r.source_weather.desc} (Temp: ${r.source_weather.temp}°C, Wind: ${r.source_weather.wind} m/s) <br>
+                    <strong>Target Weather:</strong> ${r.target_weather.desc} (Temp: ${r.target_weather.temp}°C, Wind: ${r.target_weather.wind} m/s) <br>
+                    <strong>Source Country Risk:</strong> ${r.source_country_risk} <br>
+                    <strong>Target Country Risk:</strong> ${r.target_country_risk} <br>
+                    <strong>Estimated Delay Probability:</strong> ${r.delay_probability}% <br>
+                    <strong>Total Route Risk:</strong> ${r.total_risk_pct}% (${r.total_risk_qualitative}) <br>
+                    <hr>
+                    <pre style='white-space:pre-wrap;'>${r.summary}</pre>
+                `;
+            }
+        } else {
+            detailsDiv.innerHTML = `<div class='text-danger'>${data.error || 'Error analyzing risk.'}</div>`;
+        }
+    } catch (e) {
+        detailsDiv.innerHTML = `<div class='text-danger'>Error analyzing risk.</div>`;
+    }
+});
+
+// Inventory Management functionality
+document.getElementById('inventory-location').addEventListener('change', async function() {
+    const location = this.value;
+    const resultsCard = document.getElementById('inventory-results');
+    const detailsDiv = document.getElementById('inventory-details');
+    if (!location) {
+        resultsCard.style.display = 'none';
+        detailsDiv.innerHTML = '';
+        return;
+    }
+    detailsDiv.innerHTML = 'Loading inventory details...';
+    resultsCard.style.display = 'block';
+    try {
+        const response = await fetch('/api/inventory-details', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location })
+        });
+        const data = await response.json();
+        if (data.success) {
+            const r = data.result;
+            detailsDiv.innerHTML = `
+                <strong>Location:</strong> ${r.location} <br>
+                <strong>Storage Capacity:</strong> ${r.storage_capacity} tons <br>
+                <strong>Available Space:</strong> ${r.available_space} tons <br>
+                <strong>Hours of Operation:</strong> ${r.hours} <br>
+                <strong>Agent Name:</strong> ${r.agent.name} <br>
+                <strong>Agent Role:</strong> ${r.agent.role} <br>
+                <strong>Agent Status:</strong> ${r.agent.status} <br>
+                <strong>Agent Phone:</strong> ${r.agent.phone} <br>
+                <strong>Agent Email:</strong> ${r.agent.email} <br>
+                <strong>Current Weather:</strong> ${r.weather.desc} (Temp: ${r.weather.temp}°C, Wind: ${r.weather.wind} m/s) <br>
+            `;
+        } else {
+            detailsDiv.innerHTML = `<div class='text-danger'>${data.error || 'Error loading inventory details.'}</div>`;
+        }
+    } catch (e) {
+        detailsDiv.innerHTML = `<div class='text-danger'>Error loading inventory details.</div>`;
+    }
+});
+
+// --- Agent Email Functionality ---
+const agentEmailSection = document.getElementById('agent-email-section');
+const agentSelect = document.getElementById('agent-select');
+const agentEmailInput = document.getElementById('agent-email');
+const emailMessage = document.getElementById('email-message');
+const sendAgentEmailBtn = document.getElementById('send-agent-email');
+const emailStatus = document.getElementById('email-status');
+
+// Populate agent dropdown when inventory details are loaded
+async function populateAgentDropdown(location) {
+    // Fetch all agents for the selected location
+    const response = await fetch('/api/inventory-details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location })
+    });
+    const data = await response.json();
+    if (data.success) {
+        const agent = data.result.agent;
+        agentSelect.innerHTML = `<option value="">Select agent...</option>`;
+        if (agent && agent.name) {
+            agentSelect.innerHTML += `<option value="${agent.name}" data-email="${agent.email}">${agent.name}</option>`;
+        }
+        agentEmailInput.value = '';
+        emailMessage.value = '';
+        emailStatus.innerHTML = '';
+        agentEmailSection.style.display = 'block';
+    } else {
+        agentSelect.innerHTML = `<option value="">No agents found</option>`;
+        agentEmailInput.value = '';
+        emailMessage.value = '';
+        emailStatus.innerHTML = '';
+        agentEmailSection.style.display = 'none';
+    }
+}
+
+// When agent is selected, populate email
+agentSelect.addEventListener('change', function() {
+    const selectedOption = agentSelect.options[agentSelect.selectedIndex];
+    agentEmailInput.value = selectedOption.getAttribute('data-email') || '';
+});
+
+// When inventory location changes, update agent dropdown
+const inventoryLocationSelect = document.getElementById('inventory-location');
+inventoryLocationSelect.addEventListener('change', function() {
+    const location = this.value;
+    if (location) {
+        populateAgentDropdown(location);
+    } else {
+        agentEmailSection.style.display = 'none';
+    }
+});
+
+// Send email button (simulate sending)
+sendAgentEmailBtn.addEventListener('click', function() {
+    const agentName = agentSelect.value;
+    const agentEmail = agentEmailInput.value;
+    const message = emailMessage.value.trim();
+    if (!agentName || !agentEmail) {
+        emailStatus.innerHTML = '<span class="text-danger">Please select an agent.</span>';
+        return;
+    }
+    if (!message) {
+        emailStatus.innerHTML = '<span class="text-danger">Please enter a message.</span>';
+        return;
+    }
+    // Simulate sending email
+    emailStatus.innerHTML = `<span class="text-success">Email sent to ${agentName} (${agentEmail})!</span>`;
+    emailMessage.value = '';
+});
+
+// Tab highlight logic
+const tabButtons = document.querySelectorAll('#dashboardTabs .nav-link');
+tabButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+// Restore the JS for analyzing a route in the Route Analysis tab
+const analyzeRouteAnalysisBtn = document.getElementById('analyze-route-analysis');
+analyzeRouteAnalysisBtn.addEventListener('click', async function() {
+    const sourceLocation = document.getElementById('route-source-location').value;
+    const targetLocation = document.getElementById('route-target-location').value;
+    const sourceNodeId = nodeLocationMap[sourceLocation];
+    const targetNodeId = nodeLocationMap[targetLocation];
+    if (!sourceNodeId || !targetNodeId) {
+        alert('Please select both source and target locations.');
+        return;
+    }
+    if (sourceNodeId === targetNodeId) {
+        alert('Source and target locations must be different.');
+        return;
+    }
+    const btn = document.getElementById('analyze-route-analysis');
+    btn.disabled = true;
+    btn.textContent = 'Analyzing...';
+    try {
+        const response = await fetch('/api/analyze-route', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: sourceNodeId, target: targetNodeId })
+        });
+        const data = await response.json();
+        const routeDetailsAnalysis = document.getElementById('route-details-analysis');
+        displayRouteResultsCustom(data, routeDetailsAnalysis);
+    } catch (error) {
+        alert('Error analyzing route. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Analyze';
+    }
+});
+
+function setRiskScoreCardColor() {
+    const riskCard = document.querySelector('.risk-score-card');
+    if (!riskCard) return;
+    const riskText = riskCard.querySelector('.card-text.display-6').textContent;
+    const riskValue = parseFloat(riskText.replace('%',''));
+    let color = '#43a047'; // green
+    if (riskValue > 80) color = '#e53935'; // red
+    else if (riskValue > 40) color = '#fbc02d'; // yellow
+    riskCard.style.background = color;
+}
+
+function setTotalLocationsCardColor() {
+    const locCard = document.querySelector('.total-locations-card');
+    if (!locCard) return;
+    locCard.style.background = '#C10D68'; // magenta
+}
+
+// --- AI Risk Expert functionality ---
+document.getElementById('ask-ai-risk').addEventListener('click', async function() {
+    const query = document.getElementById('ai-risk-query').value.trim();
+    const responseDiv = document.getElementById('ai-risk-response');
+    if (!query) {
+        responseDiv.innerHTML = '<span class="text-danger">Please enter a risk-related question.</span>';
+        return;
+    }
+    responseDiv.innerHTML = 'Thinking...';
+    try {
+        const resp = await fetch('/api/ai-risk-expert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            responseDiv.innerHTML = `<div class="alert alert-info">${data.response}</div>`;
+        } else {
+            responseDiv.innerHTML = `<span class="text-danger">${data.error || 'AI could not process your request.'}</span>`;
+        }
+    } catch (e) {
+        responseDiv.innerHTML = '<span class="text-danger">Error contacting AI Risk Expert.</span>';
+    }
+});
+
+// PIE CHART INTERACTIVITY
+// (Now supports continent + risk filtering for the table)
+document.addEventListener('DOMContentLoaded', function() {
+    setRiskScoreCardColor();
+    setTotalLocationsCardColor();
+    const pieChart = document.getElementById('status-pie-chart');
+    const tableRows = document.querySelectorAll('#node-table tbody tr');
+    const statCards = document.querySelectorAll('.card-text.display-6');
+    const riskMap = { 'High Risk': 'High', 'Medium Risk': 'Medium', 'Low Risk': 'Low', 'High': 'High', 'Medium': 'Medium', 'Low': 'Low' };
+    if (pieChart) {
+        pieChart.on('plotly_click', function(data) {
+            if (data.points && data.points.length > 0) {
+                const label = data.points[0].label;
+                const risk = riskMap[label];
+                // Filter table rows by continent and risk
+                tableRows.forEach(row => {
+                    const badge = row.querySelector('td:nth-child(6) .badge');
+                    const rowRisk = badge ? badge.textContent.trim().toLowerCase() : null;
+                    const rowContinent = row.getAttribute('data-continent');
+                    let show = true;
+                    if (selectedContinent && rowContinent !== selectedContinent) show = false;
+                    if (rowRisk !== risk.toLowerCase()) show = false;
+                    row.style.display = show ? '' : 'none';
+                });
+                // Highlight the clicked pie segment
+                piePull = pieLabels.map(l => (l === label ? 0.15 : 0));
+                Plotly.restyle('status-pie-chart', {pull: [piePull]});
+                // Update stats cards for filtered risk level
+                const filtered = nodes.filter(n => n.risk_level.toLowerCase() === risk.toLowerCase());
+                const totalNodes = filtered.length;
+                const totalEdges = (typeof stats !== 'undefined' ? stats.total_edges : originalStats.totalEdges);
+                const activeNodes = filtered.filter(n => n.status === 'active').length;
+                const riskScore = totalNodes > 0 ? Math.round((filtered.filter(n => n.risk_level === 'high').length * 1.0 + filtered.filter(n => n.risk_level === 'medium').length * 0.5) / totalNodes * 100) : 0;
+                if (statCards.length >= 4) {
+                    statCards[0].textContent = totalNodes;
+                    statCards[1].textContent = totalEdges;
+                    statCards[2].textContent = activeNodes;
+                    statCards[3].textContent = riskScore + '%';
+                }
+                setRiskScoreCardColor();
+                setTotalLocationsCardColor();
+                // --- Update the map to show only nodes with this risk level ---
+                const filteredMapTraces = continents.map(cont => {
+                    const group = filtered.filter(n => n.continent === cont);
+                    return {
+                        type: 'scattergeo',
+                        mode: 'markers',
+                        name: cont,
+                        text: group.map(n => `${n.location} (${n.risk_level})`),
+                        lat: group.map(n => n.lat),
+                        lon: group.map(n => n.lon),
+                        marker: {
+                            size: 10,
+                            color: group.map(n => riskColors[n.risk_level]),
+                            line: { width: 1, color: '#222' }
+                        },
+                        customdata: group.map(n => n.continent)
+                    };
+                });
+                Plotly.react('location-map', filteredMapTraces, {
+                    title: { text: `${risk} Risk Locations`, font: { size: 16 } },
+                    geo: {
+                        scope: 'world',
+                        projection: { type: 'natural earth' },
+                        showland: true,
+                        landcolor: '#eaeaea',
+                        showcountries: true,
+                        countrycolor: '#888',
+                        showframe: false
+                    },
+                    legend: { title: { text: 'Continent' }, font: { size: 13 } },
+                    margin: { t: 40, l: 10, r: 10, b: 10 },
+                    autosize: true
+                }, {responsive: true});
+            }
+        });
+        pieChart.on('plotly_doubleclick', function() {
+            // Reset table to show all rows in selected continent (if any), or all rows
+            tableRows.forEach(row => {
+                if (selectedContinent) {
+                    if (row.getAttribute('data-continent') === selectedContinent) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                } else {
+                    row.style.display = '';
+                }
+            });
+            // Reset pie chart
+            piePull = [0, 0, 0];
+            Plotly.restyle('status-pie-chart', {pull: [piePull]});
+            // Reset stats cards
+            if (statCards.length >= 4) {
+                statCards[0].textContent = originalStats.totalNodes;
+                statCards[1].textContent = originalStats.totalEdges;
+                statCards[2].textContent = originalStats.activeNodes;
+                statCards[3].textContent = originalStats.riskScore + '%';
+            }
+            setRiskScoreCardColor();
+            setTotalLocationsCardColor();
+        });
+    }
+    // --- MAP LEGEND INTERACTIVITY ---
+    const mapDiv = document.getElementById('location-map');
+    let selectedContinent = null;
+
+    mapDiv.on('plotly_legendclick', function(data) {
+        selectedContinent = data.node.textContent;
+        // Filter nodes for the selected continent
+        const filtered = nodes.filter(n => n.continent === selectedContinent);
+        // Update table rows
+        const tableRows = document.querySelectorAll('#node-table tbody tr');
+        tableRows.forEach(row => {
+            if (row.getAttribute('data-continent') === selectedContinent) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        // Update pie chart for this continent (count by node.risk_level, not by country_risk)
+        const riskCounts = { low: 0, medium: 0, high: 0 };
+        filtered.forEach(n => {
+            if (n.risk_level && riskCounts.hasOwnProperty(n.risk_level.toLowerCase())) {
+                riskCounts[n.risk_level.toLowerCase()]++;
+            }
+        });
+        Plotly.restyle('status-pie-chart', {
+            values: [[riskCounts.low, riskCounts.medium, riskCounts.high]]
+        });
+        // Update map to show only the selected continent's markers, but keep all legend entries
+        const allTraces = continents.map(cont => {
+            const group = nodes.filter(n => n.continent === cont);
+            const isSelected = cont === selectedContinent;
+            return {
+                type: 'scattergeo',
+                mode: 'markers',
+                name: cont,
+                text: group.map(n => `${n.location} (${n.risk_level})`),
+                lat: group.map(n => n.lat),
+                lon: group.map(n => n.lon),
+                marker: {
+                    size: isSelected ? 12 : 8,
+                    color: group.map(n => riskColors[n.risk_level]),
+                    line: { width: isSelected ? 2 : 1, color: '#222' }
+                },
+                customdata: group.map(n => n.continent),
+                showlegend: true,
+                visible: isSelected ? true : 'legendonly'
+            };
+        });
+        Plotly.react('location-map', allTraces, {
+            title: { text: `${selectedContinent} Locations`, font: { size: 16 } },
+            geo: {
+                scope: 'world',
+                projection: { type: 'natural earth' },
+                showland: true,
+                landcolor: '#eaeaea',
+                showcountries: true,
+                countrycolor: '#888',
+                showframe: false,
+                center: {
+                    lat: filtered.length > 0 ? filtered.reduce((sum, n) => sum + n.lat, 0) / filtered.length : 0,
+                    lon: filtered.length > 0 ? filtered.reduce((sum, n) => sum + n.lon, 0) / filtered.length : 0
+                },
+                projection: {
+                    scale: 2
+                }
+            },
+            legend: { 
+                title: { text: 'Continent' }, 
+                font: { size: 13 },
+                visible: true
+            },
+            margin: { t: 40, l: 10, r: 10, b: 10 },
+            autosize: true
+        }, {responsive: true});
+        // Update dashboard cards for this continent
+        const statCards = document.querySelectorAll('.card-text.display-6');
+        const totalNodes = filtered.length;
+        // Calculate total routes for this continent (edges where both nodes are in the continent)
+        let totalEdges = 0;
+        const nodeIds = new Set(filtered.map(n => n.id));
+        nodes.forEach(n1 => {
+            if (n1.continent === selectedContinent) {
+                if (n1.edges) {
+                    n1.edges.forEach(e => {
+                        if (nodeIds.has(e.target)) totalEdges++;
+                    });
+                }
+            }
+        });
+        // Fallback: use API if available
+        if (typeof fetch === 'function') {
+            fetch(`/api/continent-routes/${selectedContinent}`)
+                .then(response => response.json())
+                .then(data => {
+                    totalEdges = data.routes;
+                    if (statCards.length >= 4) {
+                        statCards[0].textContent = totalNodes;
+                        statCards[1].textContent = totalEdges;
+                        statCards[2].textContent = filtered.filter(n => n.status === 'active').length;
+                        // Risk score calculation
+                        const riskScore = totalNodes > 0 ? Math.round((riskCounts.high * 1.0 + riskCounts.medium * 0.5) / totalNodes * 100) : 0;
+                        statCards[3].textContent = riskScore + '%';
+                        // Dynamic color for risk score card
+                        const riskCard = document.querySelector('.risk-score-card');
+                        if (riskCard) {
+                            let color = '#43a047'; // green
+                            if (riskScore >= 80) color = '#e53935'; // red
+                            else if (riskScore >= 40) color = '#fbc02d'; // yellow
+                            riskCard.style.background = color;
+                        }
+                    }
+                });
+        }
+        return false; // Prevent default legend toggling
+    });
+    // Reset on double click of map
+    mapDiv.on('plotly_doubleclick', function() {
+        selectedContinent = null;
+        // Show all rows
+        const tableRows = document.querySelectorAll('#node-table tbody tr');
+        tableRows.forEach(row => row.style.display = '');
+        // Reset pie chart
+        Plotly.restyle('status-pie-chart', { values: [pieValues] });
+        // Reset map to show all continents
+        const allTraces = continents.map(cont => {
+            const group = nodes.filter(n => n.continent === cont);
+            return {
+                type: 'scattergeo',
+                mode: 'markers',
+                name: cont,
+                text: group.map(n => `${n.location} (${n.risk_level})`),
+                lat: group.map(n => n.lat),
+                lon: group.map(n => n.lon),
+                marker: {
+                    size: 10,
+                    color: group.map(n => riskColors[n.risk_level]),
+                    line: { width: 1, color: '#222' }
+                },
+                customdata: group.map(n => n.continent),
+                showlegend: true,
+                visible: true
+            };
+        });
+        Plotly.react('location-map', allTraces, {
+            title: { text: 'Country Locations', font: { size: 16 } },
+            geo: {
+                scope: 'world',
+                projection: { type: 'natural earth' },
+                showland: true,
+                landcolor: '#eaeaea',
+                showcountries: true,
+                countrycolor: '#888',
+                showframe: false
+            },
+            legend: { 
+                title: { text: 'Continent' }, 
+                font: { size: 13 },
+                visible: true
+            },
+            margin: { t: 40, l: 10, r: 10, b: 10 },
+            autosize: true
+        }, {responsive: true});
+        // --- Reset stat cards to global values ---
+        const statCards = document.querySelectorAll('.card-text.display-6');
+        if (statCards.length >= 4 && window.originalStats) {
+            statCards[0].textContent = window.originalStats.totalNodes;
+            statCards[1].textContent = window.originalStats.totalEdges;
+            statCards[2].textContent = window.originalStats.activeNodes;
+            statCards[3].textContent = window.originalStats.riskScore + '%';
+        }
+        setRiskScoreCardColor();
+        setTotalLocationsCardColor();
+    });
+});
+
+// --- Store original stat card values for reset ---
+window.originalStats = {
+    totalNodes: statCards[0] ? statCards[0].textContent : '',
+    totalEdges: statCards[1] ? statCards[1].textContent : '',
+    activeNodes: statCards[2] ? statCards[2].textContent : '',
+    riskScore: statCards[3] ? statCards[3].textContent.replace('%','') : ''
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    setRiskScoreCardColor();
+    setTotalLocationsCardColor();
+    const pieChart = document.getElementById('status-pie-chart');
+    const tableRows = document.querySelectorAll('#node-table tbody tr');
+    const statCards = document.querySelectorAll('.card-text.display-6');
+    // Use event delegation to reload the page on any tab click
+    const dashboardTabs = document.getElementById('dashboardTabs');
+    if (dashboardTabs) {
+        dashboardTabs.addEventListener('click', function(e) {
+            if (e.target.classList.contains('nav-link')) {
+                e.preventDefault();
+                window.location.reload();
+            }
+        }, true);
+    }
+});
+</script>
+
+<style>
+.message {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.message.user {
+    background-color: #e3f2fd;
+    text-align: right;
+}
+
+.message.ai {
+    background-color: #f1f8e9;
+}
+
+.message.system {
+    background-color: #fff3e0;
+    font-style: italic;
+}
+
+#chat-messages {
+    font-size: 14px;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.25rem;
+    font-size: 12px;
+}
+
+/* Make tab labels in the tab navigation clearly visible */
+#dashboardTabs .nav-link {
+    color: #1a2235 !important;
+    font-weight: 600;
+    opacity: 1 !important;
+    font-size: 1.1rem;
+}
+#dashboardTabs .nav-link.active {
+    color: #EE2D3D !important;
+    border-bottom: 3px solid #EE2D3D;
+    background: #fff !important;
+}
+</style>
+{% endblock %} 

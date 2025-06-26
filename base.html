@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldLink US Supply Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            color: #000000;
+        }
+        #animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        #worldmap-bg {
+            width: 100vw;
+            height: 100vh;
+            opacity: 0.45;
+            filter: blur(0.5px);
+        }
+        .route-arc {
+            opacity: 0.7;
+            stroke-dasharray: 8 8;
+            animation: dashmove 2s linear infinite;
+        }
+        @keyframes dashmove {
+            to {
+                stroke-dashoffset: 16;
+            }
+        }
+        .moving-dot {
+            filter: drop-shadow(0 0 8px #fff8);
+            opacity: 0.85;
+        }
+        .navbar {
+            background: #1a2235;
+            border-bottom: 3px solid #EE2D3D;
+        }
+        .navbar-brand, .nav-link, .navbar-nav .nav-link {
+            color: #1a2235 !important;
+            font-weight: 500;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            transition: color 0.2s, border-bottom 0.2s;
+        }
+        .navbar-brand .brand-text {
+            color: #EE2D3D;
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .navbar .nav-link.active-tab {
+            border-bottom: 3px solid #EE2D3D;
+            color: #EE2D3D !important;
+            font-weight: bold;
+            background: transparent !important;
+        }
+        .navbar .nav-link:hover {
+            color: #48B9FD !important;
+            border-bottom: 3px solid #48B9FD;
+            background: transparent !important;
+        }
+        .logo-img {
+            height: 56px;
+            width: 180px;
+            object-fit: contain;
+            margin-right: 0;
+            border-radius: 8px;
+            background: #fff;
+            border: none;
+        }
+        .brand-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .card {
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(30,30,60,0.07);
+            border: none;
+        }
+        .card-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #eaeaea;
+            font-weight: 600;
+            color: #EE2D3D;
+        }
+        .card-title {
+            color: #1a2235;
+        }
+        .text-bg-primary {
+            background: #EE2D3D !important;
+            color: #fff !important;
+        }
+        .text-bg-success {
+            background: #602CF3 !important;
+            color: #fff !important;
+        }
+        .text-bg-info {
+            background: #48B9FD !important;
+            color: #fff !important;
+        }
+        .text-bg-warning {
+            background: #C10D68 !important;
+            color: #fff !important;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #f3f6fa;
+        }
+        .table-striped > tbody > tr:nth-of-type(even) {
+            background-color: #fff;
+        }
+        .badge.bg-success {
+            background: #43a047 !important;
+        }
+        .badge.bg-warning {
+            background: #fbc02d !important;
+            color: #000;
+        }
+        .badge.bg-danger {
+            background: #e53935 !important;
+        }
+        .btn-contact {
+            background: #EE2D3D;
+            color: #fff;
+            font-weight: bold;
+        }
+        .navbar .nav-link.active {
+            border-bottom: 2px solid #C10D68;
+        }
+        .card, .card-header, .card-body {
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(30,30,60,0.13);
+        }
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .form-control, .btn {
+            border-radius: 8px;
+        }
+        .marquee-header {
+            font-family: 'Montserrat', 'Segoe UI', 'Arial Rounded MT Bold', 'Arial', 'sans-serif';
+            font-weight: 400;
+            color: #fff;
+            font-size: 1.7rem;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 6px #EE2D3D, 0 2px 8px #0008;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="animated-bg" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-1; opacity:0.5; pointer-events:none; border:2px solid red;"></canvas>
+    <nav class="navbar navbar-expand-lg" style="padding:0;">
+        <div class="container-fluid" style="display:flex; align-items:center; padding:0; margin:0; width:100%;">
+            <a class="navbar-brand d-flex align-items-center" href="/" style="margin-right:0; padding:0;">
+                <img src="/static/worldlink_logo.jpg" alt="WorldLink US Logo" class="logo-img">
+            </a>
+            <div style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; padding:0; margin:0;">
+                <span class="marquee-header" style="width:100%; font-size:3.5rem; text-align:center; white-space:normal; display:block;">
+                    AI Powered Logistics Management System
+                </span>
+            </div>
+            <div style="width:180px; height:56px; visibility:hidden;"></div>
+        </div>
+    </nav>
+    {% block content %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function showNetworkTab(event) {
+        event.preventDefault();
+        var tabTrigger = new bootstrap.Tab(document.querySelector('#network-tab'));
+        tabTrigger.show();
+    }
+    function showRouteAnalysisTab(event) {
+        event.preventDefault();
+        var tabTrigger = new bootstrap.Tab(document.querySelector('#route-tab'));
+        tabTrigger.show();
+    }
+    function showRiskManagementTab(event) {
+        event.preventDefault();
+        var tabTrigger = new bootstrap.Tab(document.querySelector('#risk-tab'));
+        tabTrigger.show();
+    }
+    function showInventoryManagementTab(event) {
+        event.preventDefault();
+        var tabTrigger = new bootstrap.Tab(document.querySelector('#inventory-tab'));
+        tabTrigger.show();
+    }
+    // Navbar active tab highlight logic
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            navLinks.forEach(l => l.classList.remove('active-tab'));
+            this.classList.add('active-tab');
+        });
+    });
+    // On page load, set the active-tab class based on the current path
+    window.addEventListener('DOMContentLoaded', function() {
+        const path = window.location.pathname;
+        navLinks.forEach(link => {
+            link.classList.remove('active-tab');
+            if ((link.getAttribute('href') === path) || (link.getAttribute('href') === '/' && path === '/')) {
+                link.classList.add('active-tab');
+            }
+        });
+    });
+    </script>
+    <script src="{{ url_for('static', filename='animated_bg.js') }}"></script>
+</body>
+</html> 

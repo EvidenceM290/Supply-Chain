@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Logistics Assistant</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            background-image: url('https://images.unsplash.com/photo-1610440042657-e2b47cb99c8b');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 100vw;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        .login-wrapper {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-card {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+        }
+        .login-card h2 {
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #b31217;
+            font-weight: bold;
+        }
+        .login-card input {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .login-card button {
+            background-color: #b31217;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .login-card button:hover {
+            background-color: #8e0e13;
+        }
+        .error {
+            color: #b31217;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="login-wrapper">
+        <form class="login-card" method="post">
+            <h2>🔐 AI Logistics Assistant</h2>
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            <input name="username" required type="text" autofocus placeholder="Username" />
+            <input name="password" required type="password" placeholder="Password" />
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html> 
